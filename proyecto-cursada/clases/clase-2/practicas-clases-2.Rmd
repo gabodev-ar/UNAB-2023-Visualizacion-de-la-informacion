@@ -1,0 +1,21 @@
+---
+title: "Ejercicio-1"
+author: "Gonzalo Ramirez"
+date: "2023-04-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Los siguientes links llevan a capítulos del libro Ciencia de Datos para el Turismo.  
+Cualquier duda que surja en el camino podés hacerla en el **foro consultas** en la solapa *Presentación*
+
+
+-[Trabajar con proyectos de RStudio](#)  
+-[Introducción a RMarkdown](#)  
+-[Lectura de datos ordenados](#)  
+
+
+Manipulación de datos ordenadosDescargar el Reporte Turismo del campus y knitearlo.  El informa debe renderizarse correctamente. Si da error intentar entender el problema y resolverlo.

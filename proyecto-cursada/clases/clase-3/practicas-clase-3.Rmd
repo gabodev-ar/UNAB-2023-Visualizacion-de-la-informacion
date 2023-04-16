@@ -1,0 +1,41 @@
+---
+title: "Clase 3"
+author: "Gonzalo Ramirez"
+date: "2023-04-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+
+pinguinos <- datos::pinguinos
+```
+
+
+```{r}
+ggplot(data = pinguinos, 
+       aes(x = largo_pico_mm, 
+           y = largo_aleta_mm,
+           color = especie,
+           size = masa_corporal_g)) +
+  geom_point()
+```
+```{r}
+#También es posible asignar el valor de un parámetro sin nombrar el parámentro:
+ggplot(pinguinos, 
+       aes(largo_pico_mm, 
+           largo_aleta_mm,)) +
+  geom_point()
+
+#Sin embargo, para los parámetros opcionales tales como "color", "size" si es necesario nombrar el parámetro.
+
+ggplot(pinguinos, 
+       aes(largo_pico_mm, 
+           largo_aleta_mm,
+           color = especie,
+           size = masa_corporal_g)) +
+  geom_point()
+```
+
