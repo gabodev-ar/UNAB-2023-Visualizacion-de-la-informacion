@@ -1,0 +1,25 @@
+---
+title: "Probando Gráficos"
+author: "Gonzalo Ramirez"
+date: "2023-05-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(datos)
+library(tidyverse)
+```
+
+
+```{r}
+pinguinos %>% 
+  ggplot(aes(x = especie, y = masa_corporal_g)) +
+  geom_boxplot()
+```
+```{r}
+pinguinos %>% 
+  ggplot(aes(x = masa_corporal_g, fill = especie)) +
+  geom_histogram(bind = 200)
+```
+

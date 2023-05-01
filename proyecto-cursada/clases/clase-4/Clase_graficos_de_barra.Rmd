@@ -1,0 +1,50 @@
+---
+title: "Graficando"
+author: "Yanina"
+date: '2022-04-29'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(datos)
+```
+
+## Graficando barras
+
+```{r}
+pinguinos
+
+totales <- pinguinos %>% 
+  count(especie)
+  
+```
+
+```{r}
+totales %>% 
+  ggplot(aes(x= especie, y = n)) +
+  geom_col()
+```
+
+```{r}
+pinguinos %>% 
+  ggplot(aes(especie)) +
+  geom_bar(aes(y = stat(prop), group = 1))
+```
+
+```{r}
+pinguinos %>% 
+  ggplot(aes(x=especie))+
+  geom_bar(aes(fill = isla), position = "dodge")
+```
+
+
+
+
+
+
+
+
+
+
