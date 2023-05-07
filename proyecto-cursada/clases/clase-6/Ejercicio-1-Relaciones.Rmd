@@ -1,0 +1,74 @@
+---
+title: "Relaciones"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(datos)
+```
+
+Vamos a trabajar con la base de datos paises disponible en el paquete {datos}, la vieja y conocida gapminder.
+
+Completá el código para visualizar la relación entre el pib_per_capita y la esperanza de vida usando la geometría apropiada.
+
+```{r}
+paises
+```
+
+
+```{r}
+paises %>% 
+  ggplot(aes(pib_per_capita, esperanza_de_vida)) +
+    geom_point()
+```
+
+Si usaron puntos, seguramente el gráfico tiene mucho overplotting (superposición de puntitos) y nos estamos perdiendo parte de la historia. 
+
+Usá los bloques de código que siguen a continuación para probar distintas estrategías que mitiguen el overploting. 
+
+```{r}
+# Alpha
+paises %>% 
+  ggplot(aes(pib_per_capita, esperanza_de_vida)) +
+  geom_point(aes(color = continente,
+                 size  = poblacion), alpha = 0.5)
+```
+
+```{r}
+# Shape
+paises %>% 
+  ggplot(aes(pib_per_capita, esperanza_de_vida)) +
+  geom_point(aes(color = continente,
+                 size  = poblacion), shape = 25)
+```
+
+```{r}
+# jitter
+paises %>% 
+  ggplot(aes(pib_per_capita, esperanza_de_vida)) +
+  geom_jitter(aes(color = continente), width = 5, height = 10, alpha = 0.5) +
+  geom_smooth()
+```
+
+¿Alguno funciona mejor? ¿Alguno no funciona para este caso particular? 
+
+Creo que la configuración que mejor funciona es una combinación entre los parámetros
+alpha, color y la geometría jitter con el cuidado de no distorsionar los valores reales
+del dataset.
+Además, me parece que la configuración que no funciona para este caso es aquella que lleva como parámetro shape. Esta configuración no es relevante para mitigar los problemas del overplotting.
+
+Si queda tiempo pueden probar:
+
++ Mapear el color de los puntos a la variable continente -ok
++ Mapear el tamaño de los puntos a la variable población -ok
+
++ Agregar una capa con geom_smooth(), genera un buen ajuste?  
+No genera un buen ajuste. Con el método por defecto de la capa geom_smooth
+la parte mas relevante del análisis se pierde entre los puntos graficados.
+En cuanto  a una configuración de tipo "method = lm" hace que se pierda información
+valiosa cuando el gráfico escala y se ajusta a la función lineal.
+
++ Los mismo pero por continente -ok

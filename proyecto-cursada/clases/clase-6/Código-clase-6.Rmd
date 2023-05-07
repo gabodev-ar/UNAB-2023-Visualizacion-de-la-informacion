@@ -1,0 +1,33 @@
+---
+title: "Código-clase-6"
+author: "Gonzalo Ramirez"
+date: "2023-05-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(datos)
+```
+
+```{r}
+head(pinguinos)
+```
+
+```{r}
+pinguinos %>% 
+  ggplot(aes(largo_pico_mm, largo_aleta_mm, color = especie)) +
+  geom_point(aes(size = masa_corporal_g)) +
+  facet_wrap(~sexo)
+  
+```
+
+```{r}
+pinguinos %>% 
+  ggplot(aes(largo_pico_mm, largo_aleta_mm, color = especie)) +
+  geom_point(aes(size = masa_corporal_g)) +
+  facet_grid(sexo~isla)
+```
+

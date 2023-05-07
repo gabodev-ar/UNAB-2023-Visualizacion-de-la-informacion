@@ -1,0 +1,67 @@
+---
+title: "Informe práctico 1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+
+runiverse <- readr::read_csv("https://raw.githubusercontent.com/yabellini/visualizacion_grado_unab/main/datos/runiverse.csv")
+
+```
+
+La base de datos `runiverse` contiene información sobre los paquetes publicados en R-Universe a Abril de 2023 de 
+la empresa RStudio y la organización rOpenSci. 
+
+### **Parte 1**
+
+**Pregunta:** ¿Cuáles y cuantos son los tipos de licencias utilizados en los paquetes?, 
+¿existe algun comportamiento particular en el uso de licencias entre las empresas? 
+
+
+**Introducción:** *Tu introducción va aqui*
+
+
+**Enfoque:** *Tu forma de resolución va aquí*
+
+**Analisis:**
+
+
+```{r}
+runiverse %>% 
+  ggplot(aes(y = License,
+             fill = organization)) +
+  geom_bar()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+**Discusión:** *Tu discusión de los resultados va aquí.*
+
+### **Parte 2**
+
+**Pregunta:** *Tu pregunta va a aquí*
+
+**Introducción:** *Tu introducción va aqui*
+
+**Enfoque:** *Tu forma de resolución va aquí*
+
+**Analisis:**
+
+```{r }
+# Tu código de R va aquí
+```
+
+```{r }
+# Tu código de R va aquí
+```
+
+**Discusión:** *Tu discusión de los resultados va aquí.*
