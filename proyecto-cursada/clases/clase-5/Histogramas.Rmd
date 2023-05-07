@@ -26,14 +26,15 @@ pinguinos
 Completá el código para generar un histograma que responda la pregunta. Pista: la variable en el dataframe se llama `largo_aleta_mm`.
 
 ```{r}
-ggplot(pinguinos, aes(_____________)) +
-  __________
+ggplot(pinguinos, aes(x = largo_aleta_mm)) +
+  geom_histogram()
 ```
 
 ¿Tiene sentido? Que pasaría si cambiamos el tamaño de los intervalos? Pista: el argumento se llama `binwidth`.
 
 ```{r}
-
+ggplot(pinguinos, aes(x = largo_aleta_mm)) +
+  geom_histogram(binwidth = 2)
 ```
 
 Finalmente, ¿a qué podrán deberse esos 2 máximos? Pareciera que hay al menos dos grupos que comparten aletas parecidas. Completá el código cómo antes y además pinta de color las barras de acuerdo a la especie para develar el misterio. 
@@ -41,6 +42,6 @@ Finalmente, ¿a qué podrán deberse esos 2 máximos? Pareciera que hay al menos
 ¿Qué rol juegan `alpha = 0.5` y `position = "identity"`? Si queda tiempo, pueden cambiar estos valores para ver que sucede. Pista revisen la documentación de la geometría para ver que valores pueden tomar el alpha y position. 
 
 ```{r}
-ggplot(pinguinos, aes(_________)) +
-  ____________(aes(__________ = ________), alpha = 0.5, position = "identity")
+ggplot(pinguinos, aes(x = largo_aleta_mm, fill = especie)) +
+  geom_histogram(aes(binwidth = 5), alpha = 0.5, position = "identity")
 ```

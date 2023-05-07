@@ -63,12 +63,12 @@ boxoffice
 Por alguna razón, La geometría (o `geom`) de ggplot que nos permite graficar barras en este caso se llama `geom_col()`. (También tenemos `geom_bar()`, pero funciona diferente, ya vimos que *calcula las frecuencias internamente*). Creá un gráfico que muestre `cantidad` en función de `titulo`. Esto significa que `cantidad` va en el eje y, y `titulo` en el eje x.
 
 ```{r geom-col, exercise=TRUE}
-ggplot(boxoffice, aes(x = ___, y = ___)) +
-  ___()
+ggplot(boxoffice, aes(x = titulo, y = cantidad)) +
+  geom_col()
 ```
 
 ```{r geom-col-hint}
-ggplot(boxoffice, aes(x = ___, y = ___)) +
+ggplot(boxoffice, aes(x = titulo, y = cantidad)) +
   geom_col()
 ```
 
@@ -80,12 +80,12 @@ ggplot(boxoffice, aes(x = titulo, y = cantidad)) +
 Ahora cambia de lugar las variables para graficar `cantidad` en el eje x y `titulo` en el eje y.
 
 ```{r geom-col2, exercise=TRUE}
-ggplot(boxoffice, aes(x = ___, y = ___)) +
-  ___()
+ggplot(boxoffice, aes(x = cantidad, y = titulo)) +
+  geom_col()
 ```
 
 ```{r geom-col2-hint}
-ggplot(boxoffice, aes(x = ___, y = ___)) +
+ggplot(boxoffice, aes(x = cantidad, y = titulo)) +
   geom_col()
 ```
 
@@ -99,15 +99,15 @@ La etiqueta en el eje x debería decir "Ingreso mensual (millones de USD)" y el 
 ```{r geom-col3, exercise=TRUE}
 ggplot(boxoffice, aes(x = cantidad, y = titulo)) +
   geom_col() +
-  ___(x = ___,
-      y = ___)
+  labs(x = "Ingreso mensual (millones de USD)",
+      y = NULL)
 ```
 
 ```{r geom-col3-hint}
 ggplot(boxoffice, aes(x = cantidad, y = titulo)) +
   geom_col() +
-  labs(x = ___,
-       y = ___)
+  labs(x = "Ingreso mensual (millones de USD)",
+       y = NULL)
 ```
 
 ```{r geom-col3-solution}
@@ -124,21 +124,23 @@ Al generar gráficos, necesitamos pensar cual es el orden correcto en el que se 
 Podemor reordenar las columnas con la función `fct_reorder()`, que requiere dos argumentos: La variable categórica que queremos reordenar y los valores que usaremos de referencia para generar el orden. En este caso, la variable categórica es la columna `titulo`y los valores de referencia están en la columna `cantidad`. Podemos usar `fct_reorder()` directamente dentro de la función `aes()`:
 
 ```{r geom-col-sorted, exercise=TRUE}
-ggplot(boxoffice, aes(x = cantidad, y = ___)) +
+ggplot(boxoffice, aes(x = cantidad, y = fct_reorder(titulo, cantidad))) +
   geom_col() +
   labs(x = "Ingreso mensual (millones de USD)",
        y = NULL)
 ```
 
 ```{r geom-col-sorted-hint}
-ggplot(boxoffice, aes(x = cantidad, y = fct_reorder(___, ___))) +
-  geom_col() +
+ggplot(boxoffice, aes(x = cantidad, y = fct_reorder(titulo, cantidad))) +
+  geom_col(fill = "blue") +
   labs(x = "Ingreso mensual (millones de USD)",
        y = NULL)
 ```
 
 ```{r geom-col-sorted-solution}
-ggplot(boxoffice, aes(x = cantidad, y = fct_reorder(titulo, cantidad))) +
+ggplot(boxoffice, aes(x = cantidad, 
+                      y = fct_reorder(titulo, cantidad),
+                      fill =  cantidad)) +
   geom_col() +
   labs(x = "Ingreso mensual (millones de USD)",
        y = NULL)
@@ -166,13 +168,18 @@ La solución es usar `geom_bar()`, que hace las cuentas necesias internamente y 
 Intentalo. Completá el código para graficar el número de pingüinos por especie. Mapea la especie al eje x.
 
 ```{r geom-bar, exercise=TRUE}
-ggplot(pinguinos_sinNA, aes(___)) +
+ggplot(pinguinos_sinNA, aes(x = especie)) +
   geom_bar()
 ```
 
 ```{r geom-bar-hint}
-ggplot(pinguinos_sinNA, aes(x = ___)) +
-  geom_bar()
+
+ggplot(pinguinos_sinNA, aes(y = fct_relevel(especie, 
+                                            "Barbijo", 
+                                            "Papúa", 
+                                            "Adelia"))) +
+  geom_bar() + 
+  labs(y = NULL)
 ```
 
 ```{r geom-bar-solution}
@@ -192,7 +199,7 @@ Ahora intentá las siguientes modificaciones usando el código anterior:
 `geom_bar()` cuenta automáticamente cuantas ocurrencias encuentra para cada combinación de variables categóricas. En el ejemplo anterior usamos una sola categoría, la  `especie`. Pero podríamos agregar una segunda variable, por ejemplo `sexo`. En este caso `geom_bar()` contará el numero de casos para cada combinación de especie y sexo y graficará columnas para cada grupo por separado. Intentá esto mapeado el `sexo` al relleno o `fill` de las barras. 
 
 ```{r geom-bar2, exercise=TRUE}
-ggplot(pinguinos_sinNA, aes(x = especie, fill = ___)) +
+ggplot(pinguinos_sinNA, aes(x = especie, fill = sexo)) +
   geom_bar()
 ```
 
@@ -204,18 +211,18 @@ ggplot(pinguinos_sinNA, aes(x = especie, fill = sexo)) +
 Por defecto, las barras con distinto relleno se graficaran una sobre la otra. Pero hay otras posibiliadades de posición que se contrlan con el argumento `position` dentro de la función `geom_bar()`. Por ejemplo, probá la posición `"dodge"`.
 
 ```{r geom-bar-position, exercise=TRUE}
-ggplot(pinguinos_sinNA, aes(x = especie, fill = ___)) +
-  geom_bar(___)
+ggplot(pinguinos_sinNA, aes(x = especie, fill = sexo)) +
+  geom_bar(position = "dodge")
 ```
 
 ```{r geom-bar-position-hint}
 ggplot(pinguinos_sinNA, aes(x = especie, fill = sexo)) +
-  geom_bar(position = ___)
+  geom_bar(position = "stack")
 ```
 
 ```{r geom-bar-position-solution}
 ggplot(pinguinos_sinNA, aes(x = especie, fill = sexo)) +
-  geom_bar(position = "dodge")
+  geom_bar(position = "fill")
 ```
 
 Usando el código anterior probá las siguientes opciones de posición: `"stack"` y `"fill"`.
