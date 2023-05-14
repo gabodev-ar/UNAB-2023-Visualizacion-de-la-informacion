@@ -11,40 +11,93 @@ runiverse <- readr::read_csv("https://raw.githubusercontent.com/yabellini/visual
 
 ```
 
-La base de datos `runiverse` contiene información sobre los paquetes publicados en R-Universe a Abril de 2023 de 
-la empresa RStudio y la organización rOpenSci. 
-
 ### **Parte 1**
 
 **Pregunta:** ¿Cuáles y cuantos son los tipos de licencias utilizados en los paquetes?, 
 ¿existe algun comportamiento particular en el uso de licencias entre las empresas? 
 
 
-**Introducción:** *Tu introducción va aqui*
+**Introducción:**
+El siguiente dataframe titulado "runiverse" agrupa la totalidad de los paquetes R que conviven en el ecosistema de RStudio o también conocido como "R-Universe" hasta Abril de 2023 de la empresa Rstudio y la organización ROpenSci. Según ROpenSci, R-universe *"es un nuevo proyecto general bajo el cual experimentamos con varias ideas nuevas para mejorar la publicación y el descubrimiento de software de investigación en R."*<br>
 
+  En su estructura, "runiverse" contiene 450 observaciones de 14 variables o columnas. Estas últimas son: Package, Type, Title, Version, Description, License, Encoding, URL, Repository, Author, Maintainer, _published, _filesize, organization. De las cuales todas contienen valores de tipo caracter a excepcion de **filesize** que contiene valores de tipo entero.
 
-**Enfoque:** *Tu forma de resolución va aquí*
+**Enfoque:**  
+Para responder a la primer pregunta fue necesario conocer los distintos tipos de licencias presentes en el dataframe a través de una breve manipulación de los datos con las funciones "group_by" y "summarise". Esta es una excelente forma de conocer la cantidad de veces que ocurre una observación para cada tipo de licencia.
+Luego, se intenta visualizar de una manera mas agradable con un gráfico de barra que ilustra las observaciones ocurridas denotando así que existen 29 distintos tipos de licencias.
+Para el caso de la segunda pregunta, es propicio realizar un gráfico de barras pero con la característica que pueda distinguir y agrupar los tipos de licencias por organización (Rstudio y ROpenSci).
+
 
 **Analisis:**
 
+```{r echo=FALSE}
+# Genero la lista de los 29 tipos de licencias
+licenses <- runiverse %>% 
+  distinct(License) %>% 
+  pull()
 
-```{r}
+# Imprimo cada una de ellos con un salto de línea y al final realizo la suma total
+cat(paste
+    (paste(licenses, collapse = "\n"), 
+      "\n\nTotal:", 
+      length(licenses)), "\n")
+```
+
+
+```{r echo=FALSE}
+#Para el gráfico decidir usar "stat=count" dentro de geom_bar y de esta formar poder calcular las frecuencias absolutas de cada tipo de licencia
+
 runiverse %>% 
-  ggplot(aes(y = License,
-             fill = organization)) +
-  geom_bar()
+  ggplot(aes(y = License)) +
+  geom_bar(stat = "count")  +
+  #Agrego un tema minimalista de ggplot2
+  theme_minimal() +
+  theme(
+    #Defino el color de los ejes "x" y "y"
+    panel.grid.major = element_line(color = "gray90"),
+    panel.grid.minor = element_line(color = "gray90")
+  ) +
+  #Agrego las etiquetas de los ejes.
+  labs(y = "Tipo de licencia", x = "Cantidad")
 ```
 
-```{r}
+```{r echo=FALSE}
+#La diferencia con el gráfico anterior es que, uso el parámetro fill con el argumento "organization".
+#Y ubico las barras una al lado de la otra según organización para cada tipo de licencia.
 
+runiverse %>% 
+  ggplot(aes(y = License, fill = organization)) +
+  geom_bar(stat = "count", position = position_dodge())  +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 1),
+    panel.grid.major = element_line(color = "gray90"),
+    panel.grid.minor = element_line(color = "gray90")
+  ) +
+  labs(y = "Tipo de licencia", 
+       x = "Cantidad")
 ```
 
-```{r}
 
+```{r echo=FALSE}
+runiverse %>%
+  group_by(organization) %>%
+  summarise(total=n(), porc=total/nrow(runiverse)*100) %>% 
+  ggplot(aes(x = porc, 
+             y = organization)) +
+  geom_col(aes (fill = organization),
+               color = "grey90") +
+  geom_text(aes (label=paste(round(porc, digits=2),"%")), 
+                colour="white", angle=0, hjust=1.5, vjust=0.5) +
+  labs(x="Cantidad en porcentaje", y="Organización")  
 ```
 
 
-**Discusión:** *Tu discusión de los resultados va aquí.*
+**Discusión:**
+Observando la gráfica 1 podemos notar que los tipos de licencias más usados por ambas empresa son **MIT + file LICENCE** y **GPL-3**. Lo que lleva a preguntarme:  
+-¿Por qué este tipo de licencias son más utilizados y no otras?
+-¿Qué carácteristicas presentan MIT + file LICENCE y GPL-3?
+
 
 ### **Parte 2**
 
