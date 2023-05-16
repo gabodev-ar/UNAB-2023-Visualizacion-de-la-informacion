@@ -20,7 +20,7 @@ runiverse <- readr::read_csv("https://raw.githubusercontent.com/yabellini/visual
 **Introducción:**
 El siguiente dataframe titulado "runiverse" agrupa la totalidad de los paquetes R que conviven en el ecosistema de RStudio o también conocido como "R-Universe" hasta Abril de 2023 de la empresa Rstudio y la organización ROpenSci. Según ROpenSci, R-universe *"es un nuevo proyecto general bajo el cual experimentamos con varias ideas nuevas para mejorar la publicación y el descubrimiento de software de investigación en R."*<br>
 
-  En su estructura, el dataframe "runiverse" contiene 450 observaciones. Las mismas, contienen información agrupada en 14 variables: Package, Type, Title, Version, Description, License, Encoding, URL, Repository, Author, Maintainer, _published, _filesize, organization. De las cuales, todas contienen valores de tipo caracter a excepcion de **filesize** que contiene valores de tipo entero.
+  En su estructura, el dataframe "runiverse" contiene 450 observaciones. Las mismas, contienen información agrupada en 14 variables: Package, Type, Title, Version, Description, License, Encoding, URL, Repository, Author, Maintainer, _published, _filesize, organization. De las cuales, todas contienen valores de tipo caracter a excepción de **filesize** que contiene valores de tipo entero.
 
 **Enfoque:**  
 Para responder a la primer pregunta fue necesario conocer los distintos tipos de licencias presentes en el dataframe.  
@@ -102,8 +102,7 @@ runiverse %>%
 
 **Discusión:**
 Observando la gráfica 1 podemos notar que los tipos de licencias más usados por ambas organizaciones son **MIT + file LICENCE** y **GPL-3**. Lo que lleva a preguntarme:  
--¿Por qué estos tipos de licencia son más utilizados y no otros?
--¿Qué carácteristicas presentan MIT + file LICENCE y GPL-3 que las vuelven mas oportunas para Rstudio y ROpenSci?  
+-¿Por qué estos tipos de licencia son más utilizados y no otros?, ¿Qué carácteristicas presentan MIT + file LICENCE y GPL-3 que las vuelven mas oportunas para Rstudio y ROpenSci?  
 Realizando una investigación sobre estas licencias resultan ser las más populares para compartir software de código abierto. Esto va de la mano con la filosofía y la visión de R-Universe de impulsar la creación, investigación y divulgación de este tipo de herramientas y así enrobustecer la comunidad de R.  
 La característica principal y que tienen en común ambos tipos de licencias es que permiten que cualquier persona use, copie, modifique, distribuya y venda el software, siempre y cuando se incluya una copia del aviso de derechos de autor y de la licencia original.  
 El gráfico número 3 además nos muestra la proporción dada entre ambas organizaciones. ROpenSci posee casi el 70% de los paquetes y softwares desarrollados mientras que, Rstudio sólo el 30%. 
@@ -119,12 +118,12 @@ Cabe destacar que los 29 tipos de licencias de nuestro datframe promueven la dis
 En esta ocasión se intenta conocer el día que mas publicaciones de paquetes se hizo y para eso he decidido trabajar con la variable "_published". Las 450 observaciones estarán agrupadas según su fecha de publicación y oportunamente un gráfico nos permitirá visualizar esta distribución de la mejor manera posible.
 
 
-**Enfoque:** *Tu forma de resolución va aquí*
+**Enfoque:**
 Para responder a la pregunta fue necesario manipular los datos del dataframe para poder operar y generar los gráficos.  
 El formato de la variable "_published" contenía no solo la fecha si no también la hora. Esto dificultaba el ánalisis ya que solo intentaba conocer el día, el mes y el año en el que fué publicado por lo que la hora era un dato innecesario al momento.  
 
-Para extraer la información relevante a la pregunta tuve que con la función "as.Date" extraer la fecha. Pero la función me arrojaba un error relacionado al nombre de la variable. La variable "_published" contenía un carácter que impedía que la función realizara la extracción. Es por eso que primero tuve que modificar el nombre de la variable con la función "names" a "Published" y así poder continuar con el trabajo.
-Luego, creé un objeto que contenga la frecuencia de las fechas agrupadas sin repetir. Con la función "count()" y "rename()" logré discriminar las 450 observaciones y agruparlas según la fecha de su publicación con su respectivas frecuencias absolutas.
+Para extraer la información relevante a la pregunta tuve que, con la función "as.Date" extraer la fecha. Pero la función me arrojaba un error relacionado al nombre de la variable. La variable "_published" contenía un carácter que impedía que la función realizara la extracción. Es por eso que primero tuve que modificar el nombre de la variable con la función "names" a "Published" y así poder continuar con el trabajo.
+Luego, creé un objeto que contenga la frecuencia de las fechas agrupadas y sin repetir. Con la función "count()" y "rename()" logré discriminar las 450 observaciones y juntarlas según la fecha de su publicación con su respectivas frecuencias absolutas.
 
 **Analisis:**
 
@@ -132,23 +131,35 @@ Luego, creé un objeto que contenga la frecuencia de las fechas agrupadas sin re
 # Tu código de R va aquí
 #Primero cambié el nombre de la columna _published a Published por que el carácter "_" no me permitía 
 #avanzar con la siguiente operación
+
 names(runiverse)[12] <- "Published"
 ```
 
 ```{r include=FALSE}
 #Aquí modifico el formato de la variable "Published" para extraer sólo la fecha y descartar la hora.
+
 runiverse$Published <- as.Date(runiverse$Published)
 ```
 
 ```{r include=FALSE}
+#Cuento la frecuencia absoluta por fechas de publicación y renombro la columnas.
+
 publication_dates <- runiverse %>% 
   count(Published) %>% 
   rename(Fecha = Published, Frecuencia_absoluta = n)
+
+publication_dates
 ```
 
 ```{r echo=FALSE}
 #agregamos una etiqueta temporal al objeto publication_dates para luego poder plotearla
-publication_dates$label <- ifelse(publication_dates$Frecuencia_absoluta == 183, "183 publicaciones", NA)
+
+publication_dates$label <- ifelse(publication_dates$Frecuencia_absoluta == 183, "183 publicaciones de paquetes", NA)
+
+
+#Ploteamos los datos con dos tipos de graficos, uno de lína y otro de puntos para reconocer con exactitud los valores.
+#Además agregamos colores para cada gráfico, quitamos etiquetas con leyendas, estlizamos el formato de las fechas en el eje x y establecemos cada cuando días habrá una marca.
+#También ploteamos la etiqueta temporal con la lleyenda "183 publicaciones de paquetes" que previamente habia cargado al objeto.
 
 publication_dates %>% 
   ggplot(
@@ -171,5 +182,8 @@ publication_dates %>%
 ```
 
 
-**Discusión:** *Tu discusión de los resultados va aquí.*
-
+**Discusión:**  
+Luego de extraer, manipular y agrupar la información necesaria para responder nuestra pregunta podemos observar que el gráfico de líneas sin un gráfico de puntos superpuesto podría habernos confundido.  
+¿A qué me refiero con esto? En el gráfico de líneas, la línea es continua y en ningún momento se corta. Y esto es un problema, ya que dentro de nuestro dataframe hubo días en donde no se publicó ningún paquete o software. Mirando nuestro dataframe podemos ver que en la fila 1  y 2 hay un salto del 2023-02-14 al 2023-03-21.  
+Con nuestro dataframe actual no podemos saber que sucedió el 15, 16, 17, 18, 19 y 20 de Febrero del 2023. Sin embargo, si sólo tuviesemos para analizar el gráfico de líneas podríamos sacar la conclusión que del 14 al 21 de Febrero hubo un aumento paulatino de publicaciones y esto no es cierto.  
+Es por esto, que el gráfico de puntos llega para darnos mas información y de manera precisa. Así podemos obtenes la conclusión de que sólo donde hay puntos marcados, hubo publicaciones de paquetes y/o sortware y que el día con más publicaciones fue el 15 de Abril con 183 publicaciones.
