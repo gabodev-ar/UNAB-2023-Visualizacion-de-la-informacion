@@ -1,0 +1,97 @@
+---
+title: "Clase-7"
+author: "Gonzalo Ramirez"
+date: "2023-05-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(datos)
+```
+
+```{r}
+diamantes
+```
+
+```{r}
+diamantes %>% 
+  ggplot(aes(corte, fill = claridad)) +
+  geom_bar() +
+  labs(
+    title   = "Cantidad de diamentes por tipo y claridad",
+    caption = "Fuente: conjunto de datos diamantes del paquete de datos",
+    x       = "Corte",
+    y       = "Frecuencia acumulada"
+  ) +
+  scale_y_continuous(limits = c(0, 25000),
+                     breaks = seq(0, 25000, 7500),
+                     expand = c(0, 1)) +
+  scale_x_discrete(labels = c("Corte-1", "Corte-2", "Corte-3", "Corte-4", "Corte-5")) +
+  scale_fill_manual(values = c("I1"   = "Red",
+                               "SI2"  = "Blue",
+                               "SI1"  = "White",
+                               "VS2"  = "Black",
+                               "VS1"  = "Yellow",
+                               "VVS2" = "Green",
+                               "VVS1" = "Orange",
+                               "IF"   = "Pink"))
+```
+
+```{r}
+mayor_quilaje <- diamantes %>% 
+  arrange(desc(quilate)) %>% 
+  head(n = 1)
+
+mayor_quilaje
+
+```
+
+```{r}
+diamantes %>% 
+  ggplot(aes(quilate, precio, color = claridad)) +
+  geom_point() +
+  labs(
+    title = "Precio de los diamantes",
+    x     = "Quilates",
+    y     = "Precio ($)"
+  ) +
+  geom_text(data = mayor_quilaje, aes(label = "Máximo"), color = "red", nudge_y = -500) +
+  geom_text(data = mayor_quilaje, aes(label = paste0(quilate)), nudge_y = 700)
+
+```
+```{r}
+diamantes %>% 
+  ggplot(aes(corte, fill = claridad)) +
+  geom_bar(position = "dodge") +
+  labs(
+    title    = "Diamantes por corte y claridad",
+    subtitle = "Cantidades de acuerdo a la claridad en cada tipo de corte",
+    caption  = "Fuente: conjunto de datos diamantes del paquete datos.",
+    x        = "Tipo de corte",
+    y        = "Frecuencia por claridad"
+  )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
