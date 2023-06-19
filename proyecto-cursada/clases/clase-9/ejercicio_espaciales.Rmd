@@ -1,0 +1,235 @@
+---
+#############################################################
+#                                                           #
+# Click on "Run Document" in RStudio to run this worksheet. #
+#                                                           #
+#############################################################
+title: "Visualizing geospatial data"
+author: "Claus O. Wilke"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+library(colorspace)
+library(sf)
+knitr::opts_chunk$set(echo = FALSE, comment = "", paged.print = FALSE)
+
+texas_income <- readRDS(url("https://wilkelab.org/SDS375/datasets/Texas_income.rds"))
+
+US_census <- read_csv("https://wilkelab.org/SDS375/datasets/US_census.csv")
+texas_counties <- US_census %>% 
+  filter(state == "Texas") %>%
+  select(FIPS, name, pop2010, area) %>%
+  extract(name, "county", regex = "(.+) County") %>%
+  mutate(
+    FIPS = as.character(FIPS),
+    popratio = pop2010/median(pop2010),
+  )
+```
+
+## Introducción
+
+En este tutorial, hablaremos de cómo visualizar datos geoespaciales.
+
+Utilizaremos el paquete de R **tidyverse** para la manipulación y visualización general de datos, y el paquete de R **sf** para manejar características simples (que representan formas y ubicaciones en la superficie de la tierra). También cargaremos el paquete **colorspace** para usar sus escalas de color.
+
+```{r library-calls, echo = TRUE, eval = FALSE}
+# load required libraries
+library(tidyverse)
+library(sf)
+library(colorspace)
+```
+
+
+Trabajaremos con los conjuntos de datos `texas_income` y `texas_counties`. El conjunto de datos `texas_income` contiene el ingreso medio de todos los condados de Texas, así como información sobre la forma geográfica de cada condado (almacenada en la columna `geometry`). La columna `FIPS` contiene un código de identificación de cinco dígitos que representa de forma única a cada condado.
+
+```{r echo = TRUE}
+texas_income
+```
+
+El conjunto de datos `texas_counties` contiene información sobre cuántas personas vivían en los condados de Texas en 2010, así como el tamaño de cada condado (columna `area`). La columna `popratio` es la relación entre el número de habitantes y la mediana de todos los condados. La columna `FIPS` contiene un código de identificación de cinco dígitos que representa de forma única a cada condado.
+
+```{r tx-counties, echo = TRUE}
+texas_counties
+```
+
+## Manipulando los datos
+
+Antes de realizar cualquier visualización, vamos a adquirir cierta experiencia manipulando tablas de datos que contienen información geoespacial. Esto no requiere que aprendamos ningún concepto nuevo, ya que las tablas de datos con información geoespacial (es decir, que contienen una columna `geometría`) pueden manipularse igual que las que no la contienen.
+
+Vamos a probarlo. Tomemos la tabla `texas_income` y filtremos las filas de los condados "Travis" y "Harris".
+
+```{r sf-wrangling, exercise = TRUE}
+
+```
+
+```{r sf-wrangling-hint}
+texas_income %>%
+  filter(___)
+```
+
+```{r sf-wrangling-solution}
+texas_income %>%
+  filter(county %in% c("Travis", "Harris"))
+```
+
+Ahora uní la tabla `texas_income` con la tabla `texas_counties` y encuentra los cinco condados más grandes.
+
+**Sugerencia:** Usa la función `left_join()` para unir las tablas, y usa las funciones `arrange()` y `slice()` para encontrar los cinco condados más grandes.
+
+```{r sf-wrangling2, exercise = TRUE}
+
+```
+
+```{r sf-wrangling2-hint-1}
+texas_income %>%
+  left_join(___) %>%
+  ___
+```
+
+```{r sf-wrangling2-hint-2}
+texas_income %>%
+  left_join(texas_counties) %>%
+  arrange(___) %>%
+  slice(___)
+```
+
+```{r sf-wrangling2-solution}
+texas_income %>%
+  left_join(texas_counties) %>%
+  arrange(desc(area)) %>%
+  slice(1:5)
+```
+
+```{r median-income-question}
+question('¿Cuál es el ingreso medio del condado más grande?',
+  answer("38395", correct = TRUE),
+  answer("35000"),
+  answer("87524"),
+  answer("89152"),
+  answer("22741")
+)
+```
+ 
+## Visualización de datos espaciales
+
+Podemos visualizar conjuntos de datos que contengan características simples (simple features) con la función `geom_sf()`. Esta geometría es muy sencilla de utilizar, ya que encuentra automáticamente la columna `geometry` y la dibuja en el sistema de coordenadas adecuado. Todo lo que tenemos que pensar es si queremos mapear alguna variable al color, por ejemplo, para hacer un choropleth.
+
+Probalo haciendo un gráfico de los condados de Texas, sin aplicar ningún tipo de mapeo estético. Recordá que el conjunto de datos `texas_income` contiene la información geométrica necesaria.
+
+```{r geom-sf, exercise = TRUE}
+
+```
+
+```{r geom-sf-hint}
+ggplot(texas_income) +
+  ___
+```
+
+```{r geom-sf-solution}
+ggplot(texas_income) +
+  geom_sf()
+```
+
+Ahora asigná la columna de datos `median_income` al color del relleno de los condados. Elejí también una escala de color apropiada del paquete **colorspace**. 
+
+**Pista:** Puedes ver las paletas de colores disponibles [aquí.](https://colorspace.r-forge.r-project.org/articles/ggplot2_color_scales.html#available-palettes-1)
+
+```{r geom-sf-fill, exercise = TRUE}
+
+```
+
+```{r geom-sf-fill-hint}
+ggplot(texas_income) +
+  geom_sf(aes(fill = ___)) +
+  scale_fill_continuous_sequential(palette = ___)
+```
+
+```{r geom-sf-fill-solution}
+ggplot(texas_income) +
+  geom_sf(aes(fill = median_income)) +
+  scale_fill_continuous_sequential(palette = "Lajolla")
+```
+
+Por último, hacé un gráfico que destaque los 10 condados más pequeños de Texas. Para ello tendrás que unir primero `texas_income` y `texas_counties`.
+
+**pista:** podés probar usar la función `rank()`.
+
+```{r geom-sf-join, exercise = TRUE}
+
+```
+
+```{r geom-sf-join-hint-1}
+texas_income %>%
+  left_join(texas_counties) %>%
+  mutate(
+    smallest = rank(area) <= 5
+  )
+```
+
+```{r geom-sf-join-hint-2}
+texas_income %>%
+  left_join(texas_counties) %>%
+  mutate(
+    smallest = rank(area) <= 5
+  ) %>%
+  ggplot() +
+  geom_sf(aes(fill = ___))
+```
+
+```{r geom-sf-join-hint-3}
+texas_income %>%
+  left_join(texas_counties) %>%
+  mutate(
+    smallest = rank(area) <= 5
+  ) %>%
+  ggplot() +
+  geom_sf(aes(fill = smallest))
+```
+
+```{r geom-sf-join-solution}
+texas_income %>%
+  left_join(texas_counties) %>%
+  mutate(
+    smallest = rank(area) <= 5
+  ) %>%
+  ggplot() +
+  geom_sf(aes(fill = smallest), size = 0.2) +
+  scale_fill_manual(
+    values = c(
+      `TRUE` = "#D55E00",
+      `FALSE` = "#E8EEF9"
+    )
+  )
+```
+
+## Cambiar la proyección
+
+Una de las principales ventajas del paquete sf es que incorpora diferentes proyecciones cartográficas. Podemos referirnos a las proyecciones por sus códigos EPSG, que pueden consultarse en sitios web como https://spatialreference.org/ o https://epsg.io/.
+
+Podemos establecer el sistema de coordenadas mediante `coord_sf()`, que toma un argumento `crs` que especifica el Sistema de Referencia de Coordenadas (CRS). Por ejemplo, `coord_sf(crs = 3083)` seleccionará una proyección Texas Centric Albers Equal Area (https://spatialreference.org/ref/epsg/3083/). Probalo.
+
+```{r coord-sf, exercise = TRUE}
+
+```
+
+```{r coord-sf-hint}
+ggplot(texas_income) +
+  geom_sf() +
+  ___
+```
+
+```{r coord-sf-solution}
+ggplot(texas_income) +
+  geom_sf() +
+  coord_sf(crs = 3083)
+```
+
+Aquí hay algunos otros sistemas de coordenadas para probar, para ver cómo las diferentes proyecciones afectan el aspecto del mapa.
+
+- EPSG:32139:](https://spatialreference.org/ref/epsg/32139/) Texas Centric Lambert Conformal Conic; observá los sutiles cambios en comparación con 3083.
+- [EPSG:3857:](https://spatialreference.org/ref/sr-org/7483/) Web Mercator, utilizada, por ejemplo, por Google Maps; no es una buena proyección en la práctica.
+- [EPSG:3338:](https://spatialreference.org/ref/epsg/3338/) Alaska Albers equal area; no es apropiada para Texas, pero muestra cambios más extremos en el gráfico.

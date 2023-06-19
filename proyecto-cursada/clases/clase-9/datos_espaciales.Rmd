@@ -1,0 +1,37 @@
+---
+title: "Datos Espaciales"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Cargo los paquetes necesarios
+library(tidyverse)
+library(metR)
+
+# Leo los datos
+# Estos son para Datos espaciales a la tidy
+sst_archivo <- tempfile()
+download.file("https://github.com/eliocamp/espaciales-tidy-tutorial/raw/main/datos/temperatura_mar.nc",
+              sst_archivo, mode = "wb")
+sst <- ReadNetCDF(sst_archivo, vars = "sst")
+
+surface <- metR::surface
+
+
+# Estos son para R para clima
+temperatura_archivo <- tempfile()
+download.file("https://github.com/eliocamp/r-clima/raw/master/datos/temperatura.nc",
+              temperatura_archivo, mode = "wb")
+temperatura <- ReadNetCDF(temperatura_archivo, vars = "air",
+                          subset = list(level = 1000,
+                                        lat = c(-55, -20),
+                                        lon = c(280, 310))) 
+
+observaciones <- readr::read_csv("https://github.com/eliocamp/r-clima/raw/master/datos/observaciones_smn.csv")
+```
+
+
+
+

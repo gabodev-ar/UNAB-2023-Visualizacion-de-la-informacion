@@ -1,0 +1,134 @@
+---
+title: "Datos espaciales"
+author: "Pao Corrales"
+date: "2023-05-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(metR)
+
+```
+
+## Datos puntuales
+
+```{r}
+observaciones <- read_csv("https://raw.githubusercontent.com/eliocamp/r-clima/master/datos/observaciones_smn.csv") %>% 
+  group_by(station) %>% 
+  summarise(tmax_media = mean(tmax, na.rm = TRUE))
+
+estaciones <- read_csv("https://raw.githubusercontent.com/eliocamp/r-clima/master/datos/estaciones_smn.csv")
+
+observaciones <- left_join(observaciones, estaciones, by = c("station" = "nombre")) %>% 
+  filter(provincia != "ANTARTIDA")
+
+mapa <- rnaturalearth::ne_countries(country = c("argentina", "chile", "uruguay", 
+                                                "paraguay", "brazil", "bolivia", 
+                                                "falkland islands"), returnclass = "sf")
+
+```
+
+
+```{r}
+observaciones %>% 
+  ggplot(aes(lon, lat)) +
+  geom_sf(data = mapa, inherit.aes = FALSE, fill = NA) +
+  geom_point(aes(color = tmax_media)) +
+  scale_color_viridis_c() +
+  coord_sf(xlim = c(-85, -45), ylim = c(-60, -10)) +
+  labs(x = NULL, y = NULL, color = NULL,
+       title = "Temperatura promedio en agosto") 
+  
+```
+
+Gráfico con krigging
+
+```{r}
+observaciones %>% 
+  ggplot(aes(lon, lat)) +
+  geom_contour_fill(aes(z = tmax_media), kriging = TRUE) +
+  # geom_point(size = 0.5) +
+  scale_fill_viridis_c() +
+  geom_sf(data = mapa, inherit.aes = FALSE, fill = NA) +
+  coord_sf(xlim = c(-85, -45), ylim = c(-60, -10)) +
+  labs(x = NULL, y = NULL, color = NULL,
+       title = "Temperatura promedio en agosto") 
+```
+Grafico con krigging más lindo pero con más vueltas
+
+```{r}
+poligonos_arg <- rnaturalearth::ne_countries(country = "argentina") %>% 
+  fortify() %>% 
+  select(x = long, y = lat) %>% 
+  list()
+  
+observaciones_regular <- observaciones %>% 
+  na.omit() %>% 
+  with(kriging::kriging(lon, lat, response = tmax_media, polygons = poligonos_arg))
+
+observaciones_regular <- observaciones_regular$map %>% 
+  rename(lon = x, lat = y, tmax_media = pred)
+
+ggplot(observaciones_regular, aes(lon, lat)) +
+  geom_contour_fill(aes(z = tmax_media)) +
+  scale_fill_viridis_c(guide = guide_colorbar(barheight = 15,
+                                               barwidth = 0.7,
+                                               frame.colour = "black")) +
+  geom_sf(data = mapa, inherit.aes = FALSE, fill = NA) +
+  geom_point(data = observaciones, size = 0.2) +
+  scale_x_latitude(ticks = 10) +
+  coord_sf(expand = FALSE, ylim = c(-60, -10), xlim = c(-85, -45)) +
+  labs(x = NULL, y = NULL, fill = NULL,
+       title = "Temperatura promedio en agosto") +
+  theme_minimal() +
+  theme()
+```
+
+Choroplets
+
+```{r}
+media_prov <- observaciones %>% 
+  group_by(provincia) %>% 
+  summarise(tmax_media_prov = mean(tmax_media, na.rm = TRUE))
+
+mapa_prov <- rnaturalearth::ne_states("Argentina", returnclass = "sf") %>% 
+  mutate(gns_name = toupper(gns_name),
+         gns_name = if_else(gns_name == "TIERRA DEL FUEGO, ANTARTIDA E ISLAS DEL ATLANTICO SUR, TERRITORIO NACIONAL DE LA",
+                            "TIERRA DEL FUEGO", gns_name))
+
+# ggplot(mapa_prov, aes(geometry = geometry)) +
+#   geom_sf()
+
+full_join(media_prov, mapa_prov, by = c("provincia" = "gns_name")) %>% 
+  ggplot() +
+  geom_sf(data = mapa, inherit.aes = FALSE, fill = NA) +
+  geom_sf(aes(fill = tmax_media_prov, geometry = geometry)) +
+  coord_sf(expand = FALSE, ylim = c(-60, -10), xlim = c(-85, -45)) +
+  labs(x = NULL, y = NULL, fill = NULL,
+       title = "Temperatura promedio en agosto") 
+```
+
+```{r}
+str(mapa_prov)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

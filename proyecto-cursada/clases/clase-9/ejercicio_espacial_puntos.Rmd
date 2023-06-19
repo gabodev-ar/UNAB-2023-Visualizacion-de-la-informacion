@@ -1,0 +1,74 @@
+---
+title: "Bicis en Buenos Aires"
+author: "Pao Corrales"
+date: "2022-11-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(sf)
+
+```
+
+Se acuerdan de los datos de las bicis de Buenos Aires? Bueno, volvieron. Ahora vamos a analizar estos datos desde un punto de vista más geoespacial. Primero leamos el archivo `estaciones.csv` y asignémole el nombre  `estaciones`.
+
+```{r}
+estaciones <- read.csv("estaciones.csv")
+```
+Este data.frame tienen información del `id_estacion`, la latitud `lat`, la longitud `lon` y la `capacidad` de cada estación, es decir, cuantas bicicletas se pueden estacionar. 
+
+Vamos a construir un mapa de las estaciones de a capas. Empecemos por gráficar la ubicación de las estaciones y representarlas con puntos.
+
+```{r}
+estaciones %>% 
+  ggplot(aes(lon, lat)) +
+  geom_point()
+
+```
+
+Por ahora esto no nos dice mucho pero puede seguir mejorando. Por ejemplo podemos mapear la capacidad de cada estación al color de los puntos. 
+
+```{r}
+estaciones %>% 
+  ggplot(aes(lon, lat, color = capacidad)) +
+  scale_color_viridis_c() +
+  geom_point()
+```
+
+Necesitamos dibujar el mapa de la Ciudad de Buenos Aires. `rnaturalearth` incluye los límites de la ciudad que se puede acceder con la función `ne_states()`, pero en este caso no es suficiente ya que hay mucha información al nivel de los barrios y las columnas. 
+
+Necesitamos conseguir los datos por otro lado. A nivel nacional y provincial los gobiernos tienen portales de datos que en general incluyen mapas. También están disponibles en la web del Instituto Geográfico Nacional:
+
+* https://data.buenosaires.gob.ar/dataset/barrios
+* https://datos.gob.ar/dataset/jgm-servicio-normalizacion-datos-geograficos
+* https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/CapasSIG
+
+Vamos a usar los datos el gobierno de la ciudad. Que podríamos descargar o leer directamente utilizando el link. La contra de esto último es que si cambia el link, se rompe el código. Pero hoy vamos a estar bien. 
+
+Para leer los datos usamos la función `st_read()` del paquete `sf`. Y como siempre, es importante hacer un gráfico de prueba. La característica estética que suele usarse para este tipo de datos `geometry`. Van a ver que al leer los datos, `geometry` contiene los polígonos que representan los distintos barrios. 
+
+Completá el código para graficar el mapa. 
+
+```{r}
+mapa_barrios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/barrios/barrios.geojson") 
+
+ggplot(mapa_barrios, aes(geometry = geometry)) +
+  geom_sf()
+```
+
+Ahora es momento de unir las 2 cosas. Y ya que estamos podés cambiar la paleta de colores, las etiquetas y la pinta del gráfico.
+
+```{r}
+estaciones %>% 
+  ggplot(aes(lon, lat, color = capacidad)) +
+  scale_color_viridis_c() +
+  geom_sf(data = mapa_barrios, inherit.aes = FALSE, fill = "gray100") +
+  geom_point() +
+  theme_minimal() +
+  labs(x = NULL, y = NULL, color = NULL,
+       title = "Bicis en Buenos Aires")
+```
+

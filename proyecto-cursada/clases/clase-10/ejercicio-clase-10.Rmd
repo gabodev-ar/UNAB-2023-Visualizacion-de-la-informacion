@@ -1,0 +1,74 @@
+---
+title: "ejercicio-clase-10"
+author: "Gonzalo Ramirez"
+date: "2023-06-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(datos)
+library(patchwork)
+```
+
+```{r}
+mtautos
+```
+```{r}
+grafico1 <- mtautos %>% 
+  ggplot(aes(cilindrada, velocidad)) +
+  geom_smooth()
+
+grafico1
+```
+
+```{r}
+grafico2 <- mtautos %>% 
+  ggplot(aes(carburadores)) +
+  geom_bar()
+
+grafico2
+```
+
+```{r}
+grafico3 <- mtautos %>% 
+  ggplot(aes(millas, cilindrada)) +
+  geom_point(shape = 20, fill = "black", size = 3)
+
+grafico3
+```
+
+```{r}
+grafico4 <- mtautos %>% 
+  ggplot(aes(x = cambios, y = cilindrada, group = cambios)) + 
+  geom_boxplot()
+
+grafico4
+```
+
+```{r}
+grafico3 + grafico4 +
+  plot_annotation(tag_levels = "a",
+                  caption = "Fuente: dataset mtautos del paquete datos")
+```
+
+```{r}
+grafico3 / grafico4 +
+  plot_annotation(tag_levels = "a",
+                  caption = "Fuente: dataset mtautos del paquete datos")
+```
+
+```{r}
+(grafico3 | grafico4 | grafico1) / grafico2 +
+  plot_annotation(tag_levels = "a",
+                  caption = "Fuente: dataset mtautos del paquete datos")
+```
+
+```{r}
+(grafico3) / (grafico1 + grafico2) +
+  plot_annotation(tag_levels = "a",
+                  caption = "Fuente: dataset mtautos del paquete datos")
+```
+

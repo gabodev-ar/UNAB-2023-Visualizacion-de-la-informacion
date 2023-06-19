@@ -1,0 +1,79 @@
+---
+title: "Temas para Graficos"
+author: "Yanina"
+date: "2023-05-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(datos)
+#library(ggthemr)
+
+```
+
+## Usando los temas por defecto
+
+```{r temas_por_defecto, fig.alt="Comparación del largo de la aleta con la masa corporal de los pinguinos con detalle por especie por medio de un gráfico de puntos."}
+
+# ggthemr('fresh') selecciono el tema que quiero usar
+
+ggplot(pinguinos, aes(largo_aleta_mm, masa_corporal_g, color = especie)) +
+  geom_point() +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_line(color = "red"),
+        panel.grid.major.y = element_line(color = "blue"),
+        axis.title = element_blank())
+
+# ggthemr_reset() Resetea al tema x defecto - no funcinó muy bien
+
+
+```
+
+
+```{r tema_propio}
+
+tema <- theme(
+  legend.position = "bottom",
+  plot.margin = unit(c(0, 0, 0, 0), "cm"),
+  panel.ontop = FALSE,
+  panel.grid = element_line(linetype = 3)
+)
+
+tema_lista <- list(
+  theme_minimal(),
+  theme(
+    legend.position = "top",
+    plot.margin = unit(c(0, 0, 0, 0), "cm"),
+    panel.grid = element_line(linetype = 3)
+  )
+)
+
+
+```
+
+```{r}
+
+ggplot(pinguinos, aes(largo_aleta_mm, masa_corporal_g, color = especie)) +
+  geom_point() +
+  tema_func(posicion = "left")
+
+
+```
+
+
+```{r}
+tema_func <- function(posicion = "bottom") {
+  list(theme_minimal(),
+       theme(
+	        legend.position = posicion,
+	        plot.margin = unit(c(0, 0, 0, 0), "cm"),
+	        panel.grid = element_line(linetype = 3)
+  ))
+}
+
+```
+
+
+
