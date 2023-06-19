@@ -1,0 +1,107 @@
+---
+title: "Untitled"
+author: "Pao Corrales"
+date: "2023-05-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(ragg)
+library(datos)
+
+
+p <- ggplot(na.omit(pinguinos), aes(x = largo_aleta_mm, y = masa_corporal_g)) +
+  geom_point(
+    aes(color = especie, shape = especie),
+    size = 3,
+    alpha = 0.8
+  ) + 
+  ggforce::geom_mark_ellipse(
+    aes(filter = especie == "Papúa", 
+        description = "Los pingüinos Papúa son generalmente más grandes")
+  ) + 
+  labs(x = "Largo de la aleta [mm]", y = "Peso [g]",  colour = "Especie", 
+       shape = "Especie")
+
+ggsave("base.png", width = 20, height = 12, units = "cm", dpi = 300)
+
+ggsave("base_grande.png", width = 60, height = 36, units = "cm", dpi = 300)
+```
+## Soluciones
+
+1. Gráficos vectorizados
+
+```{r}
+ggsave("base.pdf", width = 20, height = 12, units = "cm", dpi = 300)
+```
+
+2. Usar theme()
+
+```{r}
+p <- ggplot(na.omit(pinguinos), aes(x = largo_aleta_mm, y = masa_corporal_g)) +
+  geom_point(
+    aes(color = especie, shape = especie),
+    size = 3,
+    alpha = 0.8
+  ) + 
+  ggforce::geom_mark_ellipse(
+    aes(filter = especie == "Papúa", 
+        description = "Los pingüinos Papúa son generalmente más grandes")
+  ) + 
+  labs(x = "Largo de la aleta [mm]", y = "Peso [g]",  colour = "Especie", 
+       shape = "Especie") +
+  theme_gray(base_size = 33)
+
+ggsave("base_grande_theme.png", width = 60, height = 36, units = "cm", dpi = 300)
+```
+
+
+3. Reescalar a pixeles
+
+```{r}
+p <- ggplot(na.omit(pinguinos), aes(x = largo_aleta_mm, y = masa_corporal_g)) +
+  geom_point(
+    aes(color = especie, shape = especie),
+    size = 3,
+    alpha = 0.8
+  ) + 
+  ggforce::geom_mark_ellipse(
+    aes(filter = especie == "Papúa", 
+        description = "Los pingüinos Papúa son generalmente más grandes")
+  ) + 
+  labs(x = "Largo de la aleta [mm]", y = "Peso [g]",  colour = "Especie", 
+       shape = "Especie") 
+
+c(60, 36) *  # ancho y alto en cm
+  0.3937 * # convierte a inch
+  300 # convierte a pixels (si dpi = 300)
+
+ggsave("base_grande_pixeles.png", width = 7087, height = 4252, units = "px", dpi = 900)
+```
+
+4. `ragg`
+
+```{r}
+p <- ggplot(na.omit(pinguinos), aes(x = largo_aleta_mm, y = masa_corporal_g)) +
+  geom_point(
+    aes(color = especie, shape = especie),
+    size = 3,
+    alpha = 0.8
+  ) + 
+  ggforce::geom_mark_ellipse(
+    aes(filter = especie == "Papúa", 
+        description = "Los pingüinos Papúa son generalmente más grandes")
+  ) + 
+  labs(x = "Largo de la aleta [mm]", y = "Peso [g]",  colour = "Especie", 
+       shape = "Especie") 
+
+ragg::agg_png("base_ragg.png", width = 60, height = 36, units = "cm", res = 300, scaling = 3)
+plot(p)
+invisible(dev.off())
+```
+

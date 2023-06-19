@@ -1,0 +1,91 @@
+---
+title: "ejercicio-1-tablas"
+author: "Gonzalo Ramirez"
+date: "2023-06-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(datos)
+library(tidyverse)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(gt)
+library(gtExtras)
+```
+
+```{r}
+paises_seleccion <- datos::paises %>% 
+  filter(pais %in% c("Argentina", "Uruguay", "Chile")) %>% 
+  filter(anio %in% c(2007, 2002)) %>%
+  select(-continente)
+
+paises_seleccion
+
+```
+
+```{r}
+paises_seleccion %>% 
+  kable(col.names = c("País", "Año", "Esperanza de vida", "Población", "PBI per cápita"),
+        format.args = list(decimal.mark = ",", big.mark = "."),
+        align = "lllll"
+        ) %>% 
+  row_spec(row = c(2,4,6), background = "lightblue") %>% 
+  collapse_rows() %>% 
+  kable_paper()
+```
+
+
+##Ejercicio 2 - Clase 11
+
+```{r}
+pinguinitos <- datos::pinguinos %>% 
+  drop_na() %>%
+  group_by(especie) %>%
+  summarize(promedio_peso = mean(masa_corporal_g))
+
+pinguinitos
+```
+```{r}
+pinguinitos %>% 
+  gt() %>% 
+  tab_header(md("**Peso de los Pinguinos por especie**")) %>% 
+  cols_label(especie = "Especie", promedio_peso = "Peso promedio") %>% 
+  tab_source_note("Fuente: Dr. Kristen Gorman & Palmer Station, Antartica LTER.") %>% 
+  gtExtras::fmt_symbol_first(column = promedio_peso, symbol = "g") %>% 
+  tab_options(
+    heading.title.font.size = 22,
+    table.font.names = "Arial",
+    table.font.color = "gray50"
+  ) %>% 
+  tab_style(style = list(
+    cell_text(color = "orange")),
+    locations = cells_body(
+      columns = promedio_peso,
+      rows = promedio_peso > 5000
+    )
+  )
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
