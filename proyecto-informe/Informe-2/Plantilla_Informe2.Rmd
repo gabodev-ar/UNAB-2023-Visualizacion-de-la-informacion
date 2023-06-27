@@ -1,0 +1,82 @@
+---
+title: "Informe práctico 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(gt)
+knitr::opts_chunk$set(echo = TRUE)
+
+resultados_cmff <- read_csv("https://raw.githubusercontent.com/cienciadedatos/datos-de-miercoles/master/datos/2019/2019-07-17/resultados_cmff.csv")
+
+```
+
+La base de datos `resultados_cmff` contiene información sobre las Copas Mundiales de Fútbol Femenino y su fuente es la [data.world](https://data.world/sportsvizsunday/womens-world-cup-data). En ese sitio encontrarás más datos en inglés si te interesa profundizar.
+
+### **Parte 1**
+
+**Pregunta:** ¿Cómo es la distribución geográfica de los goles por paises? ¿Y la distribución de goles a través del tiempo? 
+
+
+**Introducción:** *Tu introducción va aqui*
+
+**Enfoque:** *Tu forma de resolución va aquí*
+
+**Analisis:**
+
+
+```{r}
+# Tu código de R va aquí
+goles_por_pais <- resultados_cmff %>% 
+                      group_by(codigo_pais) %>% 
+                      summarise(Goles = sum(goles)) %>% 
+                      rename("Pais (Código ISO)" = codigo_pais) %>% 
+                      arrange(desc(Goles))
+                      
+
+goles_por_pais %>% 
+  gt() %>% 
+  tab_header(md("**Cantidad de goles por país**")) %>% 
+  tab_source_note("Fuente: data.world/sportsvizsunday/womens-world-cup-data") %>% 
+  tab_options(
+    heading.title.font.size = 22,
+    table.font.color        = "gray40",
+    table.font.names        = "Arial" 
+  ) %>% 
+  tab_style(
+    style = list(cell_fill(color = "lavender")),
+            locations = cells_body(
+              columns = c("Pais (Código ISO)", Goles),
+              rows    = Goles == 138
+    )
+  )
+
+```
+
+```{r}
+# Tu código de R va aquí
+```
+
+
+**Discusión:** *Tu discusión de los resultados va aquí.*
+
+### **Parte 2**
+
+**Pregunta:** *Tu pregunta va a aquí*
+
+**Introducción:** *Tu introducción va aqui*
+
+**Enfoque:** *Tu forma de resolución va aquí*
+
+**Analisis:**
+
+```{r }
+# Tu código de R va aquí
+```
+
+```{r }
+# Tu código de R va aquí
+```
+
+**Discusión:** *Tu discusión de los resultados va aquí.*

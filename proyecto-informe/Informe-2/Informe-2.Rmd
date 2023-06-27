@@ -1,0 +1,227 @@
+---
+title: "Informe práctico 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(gt)
+library(metR)
+library(rnaturalearth)
+library(RColorBrewer)
+library(rvest)
+knitr::opts_chunk$set(echo = TRUE)
+
+resultados_cmff <- read_csv("https://raw.githubusercontent.com/cienciadedatos/datos-de-miercoles/master/datos/2019/2019-07-17/resultados_cmff.csv")
+
+```
+
+### **Parte 1**
+
+En este análisis, abordaremos algunas interrogantes basadas en el dataframe *"Women's World Cup Data"*. Este conjunto de datos consta de 8 variables y 568 observaciones. A continuación, se enumerarán las variables junto con su tipo de dato correspondiente:
+
+**anio:** representa el año de la Copa del Mundo Femenina y se almacena como valores enteros.
+**equipo:** indica el nombre del equipo y se encuentra en formato de caracteres.
+**codigo_pais:** representa el código del país según la norma ISO, y se almacena como caracteres.
+**ronda:** indica la instancia dentro de la competencia y se encuentra en formato de caracteres.
+**resultado:** representa un valor categórico y se almacena como caracteres.
+**goles:** indica la cantidad de goles anotados, y se almacena como valores enteros.
+**id_partido_anio:** corresponde al ID del partido y se almacena como valores enteros.
+**numero_equipo:** indica el número del equipo y se almacena como valores enteros.  
+
+Una vez que hayamos cargado los datos en un objeto llamado **resultados_cmff**, examinaremos las siguientes preguntas: ¿Cuál es la distribución geográfica de los goles por país? ¿Y cómo se distribuyen los goles a lo largo del tiempo? Para responder a estas preguntas, nos enfocaremos en las columnas equipo y goles del conjunto de datos.
+
+**Enfoque:**  
+
+Con el objetivo de responder a las preguntas planteadas, hemos definido un enfoque que incluye la creación de dos gráficos principales: **un mapamundi** para visualizar la distribución de goles por país y **un gráfico de líneas** para examinar la distribución de goles a lo largo del tiempo. Además, hemos decidido complementar el mapamundi con una **tabla** que muestra los equipos y la cantidad total de goles anotados por cada uno.
+
+Para lograr esto, fue necesario realizar una manipulación de los datos y organizarlos de manera adecuada. Durante el proceso, encontramos que la columna "codigo_pais" no seguía la norma ISO de representación de países con 3 letras, lo cual dificultaba el cruce de datos con la tabla que contiene la información de latitud y longitud necesaria para el mapeo. Para resolver esta situación, recurrimos a un recurso externo para obtener el código ISO de cada país y luego cruzamos los datos utilizando la función "left_join". El resultado de este proceso se almacenó en un objeto denominado "resultados_cmff_iso".
+
+En cuanto a la elección de la paleta de colores, consideramos que es un aspecto importante al graficar mapas, tablas y gráficos de líneas. Para ello, utilizamos la librería "RColorBrewer" y seleccionamos tonalidades de violeta. Además, es importante destacar que, en cumplimiento con la accesibilidad, todos los gráficos presentados incluirán un texto alternativo para personas con dificultades visuales. 
+
+**Analisis:**  
+
+```{r include=FALSE}
+
+#Con esta línea de código es posible ver la tabla y estudiarla.
+resultados_cmff
+```
+
+```{r echo=FALSE, fig.alt="Tabla compuesta por dos columnas. La columna Equipo contiene todo los equipos que han participado en la Women's World Cup mientras que la columna Goles agrupa la cantidad total de goles por cada equipo dando como resultado 36 filas. El rango de los valores de tipo entero de la columna Goles va desde 138 a 1 siendo Estados Unidos el equipo con más goles en la competición."}
+
+#Manipulamos el dataframe para obtener la sumatoria de goles por equipo y lo guardamos en una variable.
+goles_por_pais_tabla <- resultados_cmff %>% 
+    group_by(equipo) %>% 
+    summarise(Goles = sum(goles)) %>% 
+    rename("Equipo" = equipo) %>% 
+    arrange(desc(Goles))
+                      
+#Ploteamos la tabla usando la libreria gt para fines estéticos.
+goles_por_pais_tabla %>% 
+  gt() %>% 
+  tab_header(md("**Cantidad de goles por equipo**")) %>% 
+  tab_source_note("Fuente: data.world/sportsvizsunday/womens-world-cup-data") %>% 
+  tab_options(
+    heading.title.font.size   = 22,
+    table.font.color          = "gray40",
+    table.font.names          = "Arial",
+    column_labels.font.weight = "bold"
+  ) %>% 
+  tab_style(
+    style = list(cell_fill(color = "lavender")),
+            locations = cells_body(
+              columns = c("Equipo", Goles),
+              rows    = Goles == 138
+    )
+  )
+```
+```{r include=FALSE}
+#Pequeña manipulación para obtener el correcto formato ISO para cada país a través de una URL
+url <- "https://simple.wikipedia.org/wiki/Comparison_of_IOC,_FIFA,_and_ISO_3166_country_codes"
+lista_fifa_iso <- url %>% 
+  read_html() %>% 
+  html_table(fill = TRUE) %>% .[[1]] %>% 
+  mutate(ISO = case_when(Country == "England" ~ "GB-ENG", 
+                        Country == "Scotland" ~ "GB-SCT", 
+                        .default = ISO)) %>% 
+  select(FIFA, ISO) 
+
+#Realizamos un left_join para agregar la variale ISO y poder mapear los datos correctamente.
+resultados_cmff_iso <- left_join(resultados_cmff, lista_fifa_iso, by = c("codigo_pais" = "FIFA")) %>% 
+  group_by(ISO) %>% 
+  summarise(total_goles = sum(goles))
+
+```
+
+```{r include=FALSE}
+#Creamos un canvas con el mapamundi.
+mapamundi <- ne_countries(returnclass = 'sf')
+```
+
+```{r echo=FALSE, fig.alt="Mapamundi que muestra la distribución de la cantidad total de goles que cada país/equipo acumuló durante todas las ediciones de la Copa del Mundo Femenina comprendidas entre 1991 y 2019. La cantidad de goles va desde 1 (uno) hasta 138 (ciento treinta y ocho) y utiliza el color violeta en sus distintas tonalidades para mapear los valores. Se puede observar que hay 3 países que se destacan por encima del resto y son Estados Unidos"}
+
+#Graficamos los datos en el mapamundi y añadimos parámetros que refieren a la estética del gráfico.
+goles_por_pais_geom <- full_join(resultados_cmff_iso, mapamundi, by = c("ISO" = "gu_a3")) %>% 
+  ggplot() +
+  geom_sf(data = mapamundi, inherit.aes = FALSE, fill = NA) +
+  geom_sf(aes(fill = total_goles, geometry = geometry), color = brewer.pal(9, "Purples")[5]) +
+  scale_fill_gradientn(
+    colors = brewer.pal(9, "Purples"),
+    na.value = "grey100"
+  ) +
+  labs(fill = "Goles totales") +
+  theme_minimal() +
+  labs(title   = "Distribución geográfica de goles por paises",
+       caption = "Fuente: data.world/sportsvizsunday/womens-world-cup-data") +
+   theme(
+    plot.title   = element_text(color = "gray40", face = "bold"),
+    plot.caption = element_text(color = "gray40"),
+    legend.title = element_text(color = "gray40")
+  )
+ 
+goles_por_pais_geom
+```
+
+
+```{r echo=FALSE}
+#Creamos un objeto que va a contener la sumatoria de goles por año.
+goles_tiempo <- resultados_cmff %>% 
+    group_by(anio) %>% 
+    summarise(Goles = sum(goles)) %>% 
+    rename("Año" = anio)
+
+#Creamos un label temporal que nos servirá a la hora de graficar y señalar el año con mayor cantidad de goles.
+label_max <- paste("Año con más goles (", max(goles_tiempo$Goles), "anotaciones)")
+label_min <- paste("Año con menos goles (", min(goles_tiempo$Goles), "anotaciones)")
+
+
+#Graficamos los datos respetando la paleta de colores elegida. 
+#NOTA: al graficar nuestro objeto goles_tiempo arrojará una alerta. Esto se debe a que los objetos label_max y label_min almacenan sólo dos etiquetas para dos de las 8 filas de la tabla. El resto quedán "vacías", sin leyenda alguna. Por eso nos dice que "6 valores están perdidos".
+
+goles_tiempo %>% 
+  ggplot(aes(Año, Goles)) +
+  geom_line(
+    color      = brewer.pal(9, "Purples")[5],
+    linewidth  = 1.5
+  ) +
+  geom_point(
+    data = filter(goles_tiempo, Goles == max(Goles) |
+                                Goles == min(Goles)),
+                  color = brewer.pal(9, "Purples")[5],
+                  size  = 4) +
+  scale_x_continuous(
+    breaks = goles_tiempo$Año
+    ) +
+  theme_minimal() +
+  labs(title   = "Distribución de goles por año",
+       caption = "Fuente: data.world/sportsvizsunday/womens-world-cup-data") +
+  theme(
+    panel.grid.major = element_line(color = brewer.pal(9, "Purples")[3]),
+    panel.grid.minor = element_line(color = brewer.pal(9, "Purples")[3]),
+    plot.background  = element_blank(),
+    panel.border     = element_blank(),
+    plot.title       = element_text(color = "gray40", face = "bold"),
+    plot.caption     = element_text(color = "gray40"),
+    legend.title     = element_text(color = "gray40")
+  ) +
+  geom_text(aes(
+    label = ifelse(Goles == max(goles_tiempo$Goles), label_max, ifelse(Goles == min(goles_tiempo$Goles), label_min, NA)),
+    vjust = .4, 
+    hjust = 1.1
+  ),color = "gray40")
+```
+
+**Discusión:**  
+
+Al observar el mapamundi y la tabla complementaria, podemos afirmar que existen **tres países que concentran la mayor cantidad de goles** en la historia de la Copa del Mundo Femenina. Estos países destacados son: Estados Unidos con 138 goles, Alemania con 120 goles y Noruega con 93 goles. Esta información es fácilmente identificable gracias a la combinación del mapamundi y la tabla.
+
+La visualización del mapamundi nos brinda una visión general de la distribución geográfica de los goles por país, lo que nos permite obtener un panorama inicial sobre los equipos más destacados en términos de goles anotados. Sin embargo, es con la tabla que se vuelve más sencillo identificar los goles acumulados por cada equipo y, de esta forma, obtener un ranking de los cinco equipos más goleadores en la historia de la Copa del Mundo Femenina. Además de los tres países mencionados anteriormente, se suman Suecia con 71 goles y Brasil con 66 goles.
+
+Esta combinación de herramientas visuales y datos tabulares nos brinda una perspectiva más completa y precisa de los equipos con mejor desempeño goleador en la historia del torneo.  
+
+El gráfico de líneas temporal muestra la evolución de los goles a lo largo de las diferentes ediciones de la Copa del Mundo Femenina. Destaca que en 2015 se registró la mayor cantidad de goles con 148 anotaciones, mientras que en 2011 se anotaron menos goles, con un total de 86.
+
+### **Parte 2**
+
+**Pregunta:**  
+¿Por qué, a pesar de ser Argentina un país con una rica cultura futbolera y reconocido por su destacado desempeño en el fútbol masculino con grandes jugadores, presenta un bajo rendimiento en la competencia femenina de la Copa del Mundo si tomamos en cuenta la cantidad de goles acumulada a lo largo de las 8 ediciones que esta competencia concretó hasta el 2019?  
+Surge la hipótesis que esto se deba a la cantidad total de partidos jugados por la Argentina a lo largo de estas ocho ediciones de la Copa del Mundo. Por esto, nos planteamos la siguiente pregunta ¿cuántos partidos ha disputado la Argentina y la distribución de estos valores por equipo confirma nuestra hipótesis?
+
+**Introducción:** 
+
+En esta otra parte de nuestro análisis, buscamos abordar la última de las dos preguntas planteadas, centrándonos en la hipótesis de que el equipo femenino argentino ha tenido una menor participación en comparación con otros equipos, sin tener en cuenta las limitaciones históricas en términos de difusión e infraestructura en el fútbol femenino en Argentina. Si bien es relevante mencionar esta situación, en este análisis nos centraremos en explorar la posible disparidad en la participación del equipo argentino en comparación con otros equipos y cómo esto podría influir en su rendimiento en el torneo femenino sin olvidar que cuando hablamos de *rendimiento* nos referimos a la cantidad de goles anotados durante las 8 ediciones limitandonos a la información que nuestro dataframe nos provee.
+
+**Enfoque:**  
+
+Para explorar esta variable hemos decidido crear un gráfico de barras que nos brinde la cantidad total de partidos jugados por equipo a lo largo de las 8 ediciones de la competición. Y para alcanzar este desafio fue necesario (como siempre...) manipular nuestro dataframe y obtener estos valores creando una tabla que contabilize la cantidad de partidos jugados por equipo en cada una de las 8 ediciones y otra tabla sumando la cantidad de partidos jugados en el periodo de 1991 hasta 2019 .
+
+**Analisis:**
+
+```{r include=FALSE}
+#manipulamos y creamos nuestras tablas para luego graficarlas.
+tabla_partidos <- resultados_cmff %>% 
+  count(anio, equipo)
+
+tabla_partidos
+
+tabla_partidos_sum <- tabla_partidos %>%
+  group_by(equipo) %>%
+  summarize(total = sum(n)) %>% 
+  arrange(desc(total))
+
+tabla_partidos_sum
+```
+
+```{r echo=FALSE}
+# Tu código de R va aquí
+tabla_partidos_sum %>% 
+  ggplot(aes(x = total, y = reorder(equipo, total))) +
+  geom_col(position = position_dodge(width = 0.8)) +
+  xlab("") +
+  ylab("Total de partidos") +
+  ggtitle("Cantidad total de partidos por equipo") +
+  theme_minimal() +
+  theme()
+```
+
+**Discusión:** *Tu discusión de los resultados va aquí.*

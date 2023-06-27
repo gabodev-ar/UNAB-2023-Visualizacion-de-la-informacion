@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(metR)
+library(rnaturalearth)
+library(kriging)
 
 ```
 
@@ -31,6 +33,9 @@ mapa <- rnaturalearth::ne_countries(country = c("argentina", "chile", "uruguay",
 
 ```
 
+```{r}
+estaciones
+```
 
 ```{r}
 observaciones %>% 
